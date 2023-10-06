@@ -16,6 +16,8 @@ Stock *stock_head = NULL;
 
 // Admin Side Function Prototypes
 void add_stock(char name[], float buy_price, float sell_price, int quantity);
+void view_stocks();
+void view_single_stock(Stock *stock);
 
 void main()
 {
@@ -67,7 +69,9 @@ void main()
                 case 3:
                     break;
                 case 4:
-
+                    system("cls");
+                    view_stocks();
+                    system("pause");
                     break;
                 case 0:
                     break;
@@ -143,3 +147,28 @@ void add_stock(char name[], float buy_price, float sell_price, int quantity)
     system("pause");
 }
 // -----------Add Stock Function End----------------
+
+// -----------View Stock Function Start----------------
+void view_single_stock(Stock *stock)
+{
+    printf("--------------------------------------------------------------------------------------------\n");
+    printf("%s\t\t|\t%.2f\t\t|\t%.2f\t\t|\t%d\n", stock->name, stock->buy_price, stock->sell_price, stock->quantity);
+}
+
+void view_stocks()
+{
+    printf("************************Stocks**************************\n|\n");
+    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+
+    Stock *temp = stock_head;
+    if (temp == NULL)
+    {
+        printf("No Stocks Available\n");
+    }
+    while (temp != NULL)
+    {
+        view_single_stock(temp);
+        temp = temp->next;
+    }
+}
+// -----------View Stock Function End----------------
