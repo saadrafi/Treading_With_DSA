@@ -11,7 +11,11 @@ typedef struct stock_node
     struct stock_node *next;
 } Stock;
 
+// Admin Side Variables
+Stock *stock_head = NULL;
 
+// Admin Side Function Prototypes
+void add_stock(char name[], float buy_price, float sell_price, int quantity);
 
 void main()
 {
@@ -43,14 +47,27 @@ void main()
                 switch (admin_choice)
                 {
                 case 1:
-                    
+                    system("cls");
+                    printf("Enter the name of the stock: ");
+                    char name[20];
+                    scanf("%s", name);
+                    printf("Enter the buy price of the stock: ");
+                    float buy_price;
+                    scanf("%f", &buy_price);
+                    printf("Enter the sell price of the stock: ");
+                    float sell_price;
+                    scanf("%f", &sell_price);
+                    printf("Enter the quantity of the stock: ");
+                    int quantity;
+                    scanf("%d", &quantity);
+                    add_stock(name, buy_price, sell_price, quantity);
                     break;
                 case 2:
                     break;
                 case 3:
                     break;
                 case 4:
-                    
+
                     break;
                 case 0:
                     break;
@@ -97,4 +114,32 @@ void main()
     } while (choice != 0);
 }
 
+//------------------------------ Admin Side Functions---------------------------------
 
+// -----------Add Stock Function Start----------------
+void add_stock(char name[], float buy_price, float sell_price, int quantity)
+{
+    Stock *new_stock = (Stock *)malloc(sizeof(Stock));
+    strcpy(new_stock->name, name);
+    new_stock->buy_price = buy_price;
+    new_stock->sell_price = sell_price;
+    new_stock->quantity = quantity;
+    new_stock->next = NULL;
+
+    if (stock_head == NULL)
+    {
+        stock_head = new_stock;
+    }
+    else
+    {
+        Stock *temp = stock_head;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+        temp->next = new_stock;
+    }
+    printf("Stock Added Successfully\n");
+    system("pause");
+}
+// -----------Add Stock Function End----------------
