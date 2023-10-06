@@ -11,13 +11,20 @@ typedef struct stock_node
     struct stock_node *next;
 } Stock;
 
+// Common Functions
+void enter_float(char message[], float *value);
+void enter_int(char message[], int *value);
+
 // Admin Side Variables
 Stock *stock_head = NULL;
 
 // Admin Side Function Prototypes
+
 void add_stock(char name[], float buy_price, float sell_price, int quantity);
 void view_stocks();
 void view_single_stock(Stock *stock);
+Stock *is_stock_available(char name[]);
+void update_stock();
 
 void main()
 {
@@ -55,16 +62,20 @@ void main()
                     scanf("%s", name);
                     printf("Enter the buy price of the stock: ");
                     float buy_price;
-                    scanf("%f", &buy_price);
+                    enter_float("Enter only positive number.", &buy_price);
                     printf("Enter the sell price of the stock: ");
                     float sell_price;
-                    scanf("%f", &sell_price);
+                    enter_float("Enter only positive number.", &sell_price);
                     printf("Enter the quantity of the stock: ");
                     int quantity;
-                    scanf("%d", &quantity);
+                    enter_int("Enter only positive number.", &quantity);
                     add_stock(name, buy_price, sell_price, quantity);
                     break;
                 case 2:
+                    system("cls");
+                    view_stocks();
+                    update_stock();
+                    system("pause");
                     break;
                 case 3:
                     break;
@@ -172,3 +183,97 @@ void view_stocks()
     }
 }
 // -----------View Stock Function End----------------
+
+// -----------Update Stock Function Start----------------
+Stock *is_stock_available(char name[])
+{
+    Stock *temp = stock_head;
+    while (temp != NULL)
+    {
+        if (strcmp(temp->name, name) == 0)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+void update_stock()
+{
+    printf("\n***************Update Stock****************\n");
+    printf("Enter the name of the stock to update: ");
+    char stock_name[20];
+    scanf("%s", stock_name);
+    Stock *stock = is_stock_available(stock_name);
+    if (stock == NULL)
+    {
+        printf("Stock Not Available\n");
+    }
+    else
+    {
+        // print stock details
+        printf("Stock Details\n");
+        printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+        view_single_stock(stock);
+        printf("Enter the new buy price to update or enter n: ");
+        float buy_price;
+        int ch;
+        ch = scanf("%f", &buy_price);
+        if (ch == 1)
+        {
+            stock->buy_price = buy_price;
+        }
+        printf("Enter the new sell price to update or enter n: ");
+        float sell_price;
+        ch = scanf("%f", &sell_price);
+        if (ch == 1)
+        {
+            stock->sell_price = sell_price;
+        }
+        printf("Enter the new quantity to update or enter n: ");
+        int quantity;
+        ch = scanf("%d", &quantity);
+        if (ch == 1)
+        {
+            stock->quantity = quantity;
+        }
+
+        printf("\nStock Updated Successfully\n");
+        view_single_stock(stock);
+    }
+}
+// Common Functions
+void enter_float(char message[], float *value)
+{
+
+    int ret;
+    do
+    {
+        ret = scanf("%f", value);
+        if (ret == 0 || *value < 0)
+        {
+            printf("Invalid Input\n");
+            printf("%s\n", message);
+            fflush(stdin);
+        }
+
+    } while (ret != 1 || *value < 0);
+}
+
+void enter_int(char message[], int *value)
+{
+
+    int ret;
+    do
+    {
+        ret = scanf("%d", value);
+        if (ret == 0 || *value < 0)
+        {
+            printf("Invalid Input\n");
+            printf("%s\n", message);
+            fflush(stdin);
+        }
+        fflush(stdin);
+    } while (ret != 1 || *value < 0);
+}
