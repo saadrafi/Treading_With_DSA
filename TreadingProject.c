@@ -29,7 +29,6 @@ void delete_stock();
 Stock *is_stock_available(char name[]);
 void update_stock();
 
-
 // User Side Variables
 float user_balance = 0;
 float user_profit = 0;
@@ -62,6 +61,8 @@ void view_user_stocks(UserStock *head);
 UserStock *is_stock_bought(char name[]);
 
 void remove_user_stock(UserStock *user_stock);
+void view_transactions();
+void add_transaction(char name[], float buy_or_sell_price, int quantity, float in_out);
 
 void main()
 {
@@ -170,6 +171,7 @@ void main()
                 case 5:
 
                     system("cls");
+                    view_transactions();
                     system("pause");
 
                     break;
@@ -484,6 +486,7 @@ void buy_stock()
                 new_user_stock->sell_price = &(stock->sell_price);
                 new_user_stock->quantity = quantity;
                 new_user_stock->next = NULL;
+                add_transaction(stock->name, -stock->buy_price, quantity, -(stock->buy_price * quantity));
                 if (user_stock_head == NULL)
                 {
                     user_stock_head = new_user_stock;
@@ -546,6 +549,7 @@ void sell_stock()
             user_balance += (stock->sell_price * quantity);
             user_stock->quantity -= quantity;
             stock->quantity += quantity;
+            add_transaction(stock->name, stock->sell_price, quantity, stock->sell_price * quantity);
             if (user_stock->quantity == 0)
             {
                 remove_user_stock(user_stock);
@@ -556,6 +560,24 @@ void sell_stock()
     }
 }
 // -----------Sell Stock Function End----------------
+
+// -----------Is Stock Bought Function Start----------------
+
+UserStock *is_stock_bought(char name[])
+{
+    UserStock *temp = user_stock_head;
+    while (temp != NULL)
+    {
+        if (strcmp(temp->name, name) == 0)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+// -----------Is Stock Bought Function End----------------
 
 // -----------Remove User Stock Function Start----------------
 
@@ -605,29 +627,55 @@ void view_user_stocks(UserStock *head)
     }
 }
 
+// -----------View User Stock Function End----------------
+
 // -----------Add to Transactions Function Start----------------
 
+void add_transaction(char name[], float buy_or_sell_price, int quantity, float in_out)
+{
+    Transaction *new_transaction = (Transaction *)malloc(sizeof(Transaction));
+    strcpy(new_transaction->name, name);
+    new_transaction->buy_or_sell_price = buy_or_sell_price;
+    new_transaction->quantity = quantity;
+    new_transaction->in_out = in_out;
+    new_transaction->next = NULL;
 
+    if (transaction_head == NULL)
+    {
+        transaction_head = new_transaction;
+    }
+    else
+    {
+        Transaction *temp = transaction_head;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+        temp->next = new_transaction;
+    }
+}
 
 // -----------Add to Transactions Function End----------------
 
+// -----------View Transactions Function Start----------------
 
-
-
-// -----------Is Stock Bought Function Start----------------
-
-UserStock *is_stock_bought(char name[])
+void view_transactions()
 {
-    UserStock *temp = user_stock_head;
+    printf("************************Transaction History**************************\n|\n");
+    printf("---Balance: %.2f--- \t\t ---Profit: %.2f---\n", user_balance, user_profit);
+    printf("Name\t\t|\tBuy\\Sell\t|\tQuantity\t|\tIn\\Out\n");
+    Transaction *temp = transaction_head;
+    if (temp == NULL)
+    {
+        printf("No Transactions Available\n");
+    }
     while (temp != NULL)
     {
-        if (strcmp(temp->name, name) == 0)
-        {
-            return temp;
-        }
+        printf("-------------------------------------------------------------------------------------------\n");
+        printf("%s\t\t|\t%.2f\t\t|\t%d\t\t|\t%.2f\n", temp->name, temp->buy_or_sell_price, temp->quantity, temp->in_out);
         temp = temp->next;
     }
-    return NULL;
 }
 
-// -----------Is Stock Bought Function End----------------
+// -----------View Transactions Function End----------------
+
