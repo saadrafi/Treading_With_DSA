@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-//
+// Stock Structure
 typedef struct stock_node
 {
     char name[20];
@@ -29,8 +29,10 @@ void delete_stock();
 Stock *is_stock_available(char name[]);
 void update_stock();
 
+
 // User Side Variables
-double user_balance = 0;
+float user_balance = 0;
+float user_profit = 0;
 typedef struct user_stock_node
 {
     char name[20];
@@ -40,10 +42,26 @@ typedef struct user_stock_node
     struct user_stock_node *next;
 } UserStock;
 
+typedef struct transaction_node
+{
+    char name[20];
+    float buy_or_sell_price;
+    int quantity;
+    float in_out;
+    struct transaction_node *next;
+} Transaction;
+
 UserStock *user_stock_head = NULL;
+Transaction *transaction_head = NULL;
 // User Side Function Prototypes
 
 void buy_stock();
+void sell_stock();
+void view_single_user_stocks(UserStock *user_stock);
+void view_user_stocks(UserStock *head);
+UserStock *is_stock_bought(char name[]);
+
+void remove_user_stock(UserStock *user_stock);
 
 void main()
 {
@@ -118,11 +136,12 @@ void main()
         case 2:
             do
             {
+                system("cls");
                 printf("***********Welcome to User Side***********\n");
                 printf("*\t\t1. Buy Stock\t\t\t*\n");
                 printf("*\t\t2. Sell Stock\t\t\t*\n");
                 printf("*\t\t3. View Stock\t\t\t*\n");
-                printf("*\t\t4. Automated Suggestion\t\t*\n");
+                printf("*\t\t4. Automated Trading Suggestion\t*\n");
                 printf("*\t\t5. View Transaction History\t*\n");
                 printf("*\t\t0. Exit\t\t\t\t*\n");
                 printf("*******************************************\n");
@@ -131,35 +150,26 @@ void main()
                 switch (user_choice)
                 {
                 case 1:
-
                     system("cls");
                     buy_stock();
                     system("pause");
-
                     break;
                 case 2:
+                    system("cls");
+                    sell_stock();
+                    system("pause");
                     break;
                 case 3:
+                    system("cls");
+                    view_user_stocks(user_stock_head);
+                    system("pause");
                     break;
                 case 4:
+
                     break;
                 case 5:
 
                     system("cls");
-                    printf("************************Transaction History**************************\n|\n");
-                    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
-
-                    UserStock *temp = user_stock_head;
-                    if (temp == NULL)
-                    {
-                        printf("No Transactions Available\n");
-                    }
-                    while (temp != NULL)
-                    {
-
-                        printf("%s\t\t|\t%.2f\t\t|\t%.2f\t\t|\t%d\n", temp->name, temp->buy_price, *(temp->sell_price), temp->quantity);
-                        temp = temp->next;
-                    }
                     system("pause");
 
                     break;
@@ -425,11 +435,17 @@ void make_upper_case(char *str)
 // -----------Buy Stock Function Start----------------
 void buy_stock()
 {
+    if (stock_head == NULL)
+    {
+        printf("No Stocks Available\n");
+        return;
+    }
     if (user_balance == 0)
     {
         printf("Enter the amount to add to your account: ");
         enter_float("Enter only positive number.", &user_balance);
     }
+    printf("Your Balance: %.2f\n", user_balance);
     view_stocks(stock_head);
     printf("\n***************Buy Stock****************\n");
     printf("Enter the name of the stock to buy: ");
@@ -468,7 +484,6 @@ void buy_stock()
                 new_user_stock->sell_price = &(stock->sell_price);
                 new_user_stock->quantity = quantity;
                 new_user_stock->next = NULL;
-
                 if (user_stock_head == NULL)
                 {
                     user_stock_head = new_user_stock;
@@ -490,3 +505,129 @@ void buy_stock()
     }
 }
 // -----------Buy Stock Function End----------------
+
+// -----------Sell Stock Function Start----------------
+void sell_stock()
+{
+    if (user_stock_head == NULL)
+    {
+        printf("Please buy stock first\n");
+        return;
+    }
+    printf("Your Balance: %.2f\n", user_balance);
+    view_user_stocks(user_stock_head);
+    printf("\n***************Sell Stock****************\n");
+    printf("Enter the name of the stock to sell: ");
+    char stock_name[20];
+    scanf("%s", stock_name);
+    make_upper_case(stock_name);
+    UserStock *user_stock = is_stock_bought(stock_name);
+    Stock *stock = is_stock_available(stock_name);
+    if (user_stock == NULL)
+    {
+        printf("Stock Not Available\n");
+    }
+    else
+    {
+        // print stock details
+        printf("Stock Details\n");
+        printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+        view_single_user_stocks(user_stock);
+        printf("Enter the quantity to sell: ");
+        int quantity;
+        enter_int("Enter only positive number.", &quantity);
+        if (quantity > user_stock->quantity)
+        {
+            printf("Stock Not Available\n");
+        }
+        else
+        {
+            user_profit += (stock->sell_price * quantity) - (user_stock->buy_price * quantity);
+            user_balance += (stock->sell_price * quantity);
+            user_stock->quantity -= quantity;
+            stock->quantity += quantity;
+            if (user_stock->quantity == 0)
+            {
+                remove_user_stock(user_stock);
+            }
+
+            printf("Stock Sold Successfully\n");
+        }
+    }
+}
+// -----------Sell Stock Function End----------------
+
+// -----------Remove User Stock Function Start----------------
+
+void remove_user_stock(UserStock *user_stock)
+{
+    UserStock *temp = user_stock_head;
+    if (temp == user_stock)
+    {
+        user_stock_head = user_stock_head->next;
+        free(user_stock);
+    }
+    else
+    {
+        while (temp->next != user_stock)
+        {
+            temp = temp->next;
+        }
+        temp->next = user_stock->next;
+        free(user_stock);
+    }
+}
+
+// -----------Remove User Stock Function End----------------
+
+// -----------View User Stock Function Start----------------
+
+void view_single_user_stocks(UserStock *user_stock)
+{
+    printf("--------------------------------------------------------------------------------------------\n");
+    printf("%s\t\t|\t%.2f\t\t|\t%.2f\t\t|\t%d\n", user_stock->name, user_stock->buy_price, *(user_stock->sell_price), user_stock->quantity);
+}
+
+void view_user_stocks(UserStock *head)
+{
+    printf("************************Purchased Stocks**************************\n|\n");
+    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+
+    UserStock *temp = head;
+    if (temp == NULL)
+    {
+        printf("No Stocks Available\n");
+    }
+    while (temp != NULL)
+    {
+        view_single_user_stocks(temp);
+        temp = temp->next;
+    }
+}
+
+// -----------Add to Transactions Function Start----------------
+
+
+
+// -----------Add to Transactions Function End----------------
+
+
+
+
+// -----------Is Stock Bought Function Start----------------
+
+UserStock *is_stock_bought(char name[])
+{
+    UserStock *temp = user_stock_head;
+    while (temp != NULL)
+    {
+        if (strcmp(temp->name, name) == 0)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+// -----------Is Stock Bought Function End----------------
