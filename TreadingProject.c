@@ -58,6 +58,7 @@ void buy_stock();
 void sell_stock();
 void view_single_user_stocks(UserStock *user_stock);
 void view_user_stocks(UserStock *head);
+void view_available_stocks(Stock *head);
 UserStock *is_stock_bought(char name[]);
 
 void remove_user_stock(UserStock *user_stock);
@@ -448,14 +449,14 @@ void buy_stock()
         enter_float("Enter only positive number.", &user_balance);
     }
     printf("Your Balance: %.2f\n", user_balance);
-    view_stocks(stock_head);
+    view_available_stocks(stock_head);
     printf("\n***************Buy Stock****************\n");
     printf("Enter the name of the stock to buy: ");
     char stock_name[20];
     scanf("%s", stock_name);
     make_upper_case(stock_name);
     Stock *stock = is_stock_available(stock_name);
-    if (stock == NULL)
+    if (stock == NULL || stock->quantity == 0)
     {
         printf("Stock Not Available\n");
     }
@@ -470,7 +471,7 @@ void buy_stock()
         enter_int("Enter only positive number.", &quantity);
         if (quantity > stock->quantity)
         {
-            printf("Stock Not Available\n");
+            printf("Available Quantity is %d. Try again.....\n", stock->quantity);
         }
         else
         {
@@ -678,4 +679,29 @@ void view_transactions()
 }
 
 // -----------View Transactions Function End----------------
+
+// -----------View Available Stocks Function Start----------------
+
+void view_available_stocks(Stock *head)
+{
+    printf("************************Available Stocks**************************\n|\n");
+    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+
+    Stock *temp = head;
+    if (temp == NULL)
+    {
+        printf("No Stocks Available\n");
+    }
+    while (temp != NULL)
+    {
+        if (temp->quantity > 0)
+        {
+            view_single_stock(temp);
+        }
+        temp = temp->next;
+    }
+}
+
+// -----------View Available Stocks Function End----------------
+
 
