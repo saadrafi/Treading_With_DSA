@@ -60,7 +60,7 @@ void view_single_user_stocks(UserStock *user_stock);
 void view_user_stocks(UserStock *head);
 void view_available_stocks(Stock *head);
 UserStock *is_stock_bought(char name[]);
-
+void auto_suggest();
 void remove_user_stock(UserStock *user_stock);
 void view_transactions();
 void add_transaction(char name[], float buy_or_sell_price, int quantity, float in_out);
@@ -163,10 +163,13 @@ void main()
                     break;
                 case 3:
                     system("cls");
-                    view_user_stocks(user_stock_head);
+
                     system("pause");
                     break;
                 case 4:
+                    system("cls");
+                    auto_suggest();
+                    system("pause");
 
                     break;
                 case 5:
@@ -704,4 +707,158 @@ void view_available_stocks(Stock *head)
 
 // -----------View Available Stocks Function End----------------
 
+// -----------Auto Suggest Function Start----------------
 
+void auto_suggest()
+{
+    printf("***************Auto Suggest****************\n");
+    printf("Enter the amount to invest: ");
+    float amount;
+    enter_float("Enter only positive number.", &amount);
+
+    struct suggestion_node
+    {
+        char name[20];
+        float buy_price;
+        float sell_price;
+        int quantity;
+        float profit;
+        float ratio;
+        struct suggestion_node *next;
+    };
+    struct suggestion_node *suggestion_head = NULL;
+
+    Stock *temp = stock_head;
+    while (temp != NULL)
+    {
+        if (temp->buy_price <= amount)
+        {
+            struct suggestion_node *new_suggestion = (struct suggestion_node *)malloc(sizeof(struct suggestion_node));
+            strcpy(new_suggestion->name, temp->name);
+            new_suggestion->buy_price = temp->buy_price;
+            new_suggestion->sell_price = temp->sell_price;
+            new_suggestion->quantity = temp->quantity;
+            new_suggestion->profit = temp->sell_price - temp->buy_price;
+            new_suggestion->ratio = new_suggestion->profit / temp->buy_price;
+            new_suggestion->next = NULL;
+
+            if (suggestion_head == NULL)
+            {
+                suggestion_head = new_suggestion;
+            }
+            else
+            {
+                struct suggestion_node *temp = suggestion_head;
+                while (temp->next != NULL)
+                {
+                    temp = temp->next;
+                }
+                temp->next = new_suggestion;
+            }
+        }
+        temp = temp->next;
+    }
+
+    struct suggestion_node *current = suggestion_head;
+    while (current != NULL)
+    {
+        struct suggestion_node *max = current;
+        struct suggestion_node *temp = current->next;
+
+        while (temp != NULL)
+        {
+            if (temp->ratio > max->ratio)
+            {
+                max = temp;
+            }
+            temp = temp->next;
+        }
+
+        if (max != current)
+        {
+            // Swap the data within the nodes for buy_price
+            char tempName[20];
+            float tempBuyPrice, tempSellPrice;
+            int tempQuantity;
+            float tempProfit, tempRatio;
+
+            strcpy(tempName, current->name);
+            tempBuyPrice = current->buy_price;
+            tempSellPrice = current->sell_price;
+            tempQuantity = current->quantity;
+            tempProfit = current->profit;
+            tempRatio = current->ratio;
+
+            strcpy(current->name, max->name);
+            current->buy_price = max->buy_price;
+            current->sell_price = max->sell_price;
+            current->quantity = max->quantity;
+            current->profit = max->profit;
+            current->ratio = max->ratio;
+
+            strcpy(max->name, tempName);
+            max->buy_price = tempBuyPrice;
+            max->sell_price = tempSellPrice;
+            max->quantity = tempQuantity;
+            max->profit = tempProfit;
+            max->ratio = tempRatio;
+        }
+
+        current = current->next;
+    }
+
+    double total_profit = 0;
+    struct suggestion_node *temp1 = suggestion_head;
+    if (temp1 == NULL)
+    {
+        printf("No Stocks Available\n");
+    }
+    printf("------------------------------------------------------------------------------------------------\n");
+    printf("Name\t\t|\tBuy\t|\tSell\t|    Quantity   |\tProfit\t|\tRemaining\n");
+    while (temp1 != NULL && amount > 0)
+    {
+        int q;
+        double profit = 0;
+        if (temp1->buy_price == amount)
+        {
+            q = 1;
+            profit = temp1->profit;
+            amount = 0;
+            total_profit += profit;
+        }
+        else
+        {
+            q = amount / temp1->buy_price;
+
+            if (q > temp1->quantity)
+            {
+                q = temp1->quantity;
+            }
+            profit = q * temp1->profit;
+            amount -= q * temp1->buy_price;
+            total_profit += profit;
+        }
+
+        if (q != 0)
+        {
+            printf("--------------------------------------------------------------------------------------------\n");
+            printf("%s\t\t|\t%.2f\t|\t%.2f\t|\t%d\t|\t%.2f\t|\t%.2f\n", temp1->name, temp1->buy_price, temp1->sell_price, q, profit, amount);
+        }
+
+        temp1 = temp1->next;
+    }
+
+    printf("------------------------------------------------------------------------------------------------\n");
+    printf("Remaining amount: %.2f\n", amount);
+    printf("Total Profit: %.2f\n", total_profit);
+
+    // Free the memory
+    struct suggestion_node *temp2 = suggestion_head;
+    while (temp2 != NULL)
+    {
+        struct suggestion_node *temp3 = temp2;
+        temp2 = temp2->next;
+        free(temp3);
+    }
+}
+// -----------Auto Suggest Function End----------------
