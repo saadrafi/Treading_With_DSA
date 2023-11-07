@@ -17,6 +17,8 @@ void enter_float(char message[], float *value);
 void enter_int(char message[], int *value);
 void make_upper_case(char *str);
 
+void swap_node(Stock *a, Stock *b);
+
 // Admin Side Variables
 Stock *stock_head = NULL;
 
@@ -64,6 +66,10 @@ void auto_suggest();
 void remove_user_stock(UserStock *user_stock);
 void view_transactions();
 void add_transaction(char name[], float buy_or_sell_price, int quantity, float in_out);
+void bubble_sort(Stock *head);
+void insetion_sort(Stock *head);
+
+float get_user_stock_worth(UserStock *head);
 
 void main()
 {
@@ -142,7 +148,7 @@ void main()
                 printf("***********Welcome to User Side***********\n");
                 printf("*\t\t1. Buy Stock\t\t\t*\n");
                 printf("*\t\t2. Sell Stock\t\t\t*\n");
-                printf("*\t\t3. View Stock\t\t\t*\n");
+                printf("*\t\t3. View Stock By\t\t*\n");
                 printf("*\t\t4. Automated Trading Suggestion\t*\n");
                 printf("*\t\t5. View Transaction History\t*\n");
                 printf("*\t\t0. Exit\t\t\t\t*\n");
@@ -163,9 +169,33 @@ void main()
                     break;
                 case 3:
                     system("cls");
+                    printf("1. Buying Price\n");
+                    printf("2. Selling Price\n");
+                    printf("0. Exit\n");
+                    printf("Enter your choice: ");
+                    int choice;
+                    scanf("%d", &choice);
+                    switch (choice)
+                    {
+                    case 1:
+                        system("cls");
+                        bubble_sort(stock_head);
+                        system("pause");
+                        break;
+                    case 2:
+                        system("cls");
+                        insetion_sort(stock_head);
+                        system("pause");
+                        break;
 
-                    system("pause");
-                    break;
+                    case 0:
+                        break;
+                    default:
+                        printf("Invalid Choice\n");
+                        break;
+                    }
+
+                                        break;
                 case 4:
                     system("cls");
                     auto_suggest();
@@ -666,7 +696,7 @@ void add_transaction(char name[], float buy_or_sell_price, int quantity, float i
 void view_transactions()
 {
     printf("************************Transaction History**************************\n|\n");
-    printf("---Balance: %.2f--- \t\t ---Profit: %.2f---\n", user_balance, user_profit);
+    printf("---Balance: %.2f--- \t\t ---Profit: %.2f---\t\t---Stocks Worth: %.2f---\n", user_balance, user_profit, get_user_stock_worth(user_stock_head));
     printf("Name\t\t|\tBuy\\Sell\t|\tQuantity\t|\tIn\\Out\n");
     Transaction *temp = transaction_head;
     if (temp == NULL)
@@ -841,7 +871,7 @@ void auto_suggest()
 
         if (q != 0)
         {
-            printf("--------------------------------------------------------------------------------------------\n");
+            printf("------------------------------------------------------------------------------------------------\n");
             printf("%s\t\t|\t%.2f\t|\t%.2f\t|\t%d\t|\t%.2f\t|\t%.2f\n", temp1->name, temp1->buy_price, temp1->sell_price, q, profit, amount);
         }
 
@@ -862,3 +892,117 @@ void auto_suggest()
     }
 }
 // -----------Auto Suggest Function End----------------
+
+// Common Functions
+float get_user_stock_worth(UserStock *head)
+{
+    float worth = 0;
+    UserStock *temp = head;
+    while (temp != NULL)
+    {
+        worth += temp->buy_price * temp->quantity;
+        temp = temp->next;
+    }
+    return worth;
+}
+
+void swap_node(Stock *a, Stock *b)
+{
+    char tempName[20];
+    float tempBuyPrice, tempSellPrice;
+    int tempQuantity;
+
+    strcpy(tempName, a->name);
+    tempBuyPrice = a->buy_price;
+    tempSellPrice = a->sell_price;
+    tempQuantity = a->quantity;
+
+    strcpy(a->name, b->name);
+    a->buy_price = b->buy_price;
+    a->sell_price = b->sell_price;
+    a->quantity = b->quantity;
+
+    strcpy(b->name, tempName);
+    b->buy_price = tempBuyPrice;
+    b->sell_price = tempSellPrice;
+    b->quantity = tempQuantity;
+}
+
+// ------------------sorting------------------
+
+void bubble_sort(Stock *head)
+{
+    if (head == NULL)
+    {
+        printf("No Stocks Available\n");
+        return;
+    }
+    Stock stock_array[100];
+    int i = 0;
+    Stock *temp = head;
+    while (temp != NULL)
+    {
+        stock_array[i] = *temp;
+        temp = temp->next;
+        i++;
+    }
+    int n = i;
+    for (int i = 0; i < n - 1; i++)
+    {
+        int swapped = 0;
+        for (int j = 0; j < n - i - 1; j++)
+        {
+            if (stock_array[j].buy_price > stock_array[j + 1].buy_price)
+            {
+                swap_node(&stock_array[j], &stock_array[j + 1]);
+                swapped = 1;
+            }
+        }
+        if (swapped == 0)
+        {
+            break;
+        }
+    }
+    printf("************************Stocks**************************\n|\n");
+    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+    for (int i = 0; i < n; i++)
+    {
+        view_single_stock(&stock_array[i]);
+    }
+}
+
+void insetion_sort(Stock *head)
+{
+    if (head == NULL)
+    {
+        printf("No Stocks Available\n");
+        return;
+    }
+    Stock stock_array[100];
+    int i = 0;
+    Stock *temp = head;
+    while (temp != NULL)
+    {
+        stock_array[i] = *temp;
+        temp = temp->next;
+        i++;
+    }
+    int n = i;
+    for (int i = 1; i < n; i++)
+    {
+        Stock key = stock_array[i];
+        int j = i - 1;
+        while (j >= 0 && stock_array[j].sell_price < key.sell_price)
+        {
+            stock_array[j + 1] = stock_array[j];
+            j--;
+        }
+        stock_array[j + 1] = key;
+    }
+    printf("************************Stocks**************************\n|\n");
+    printf("Name\t\t|\tBuy Price\t|\tSell Price\t|\tQuantity\n");
+    for (int i = 0; i < n; i++)
+    {
+        view_single_stock(&stock_array[i]);
+    }
+}
